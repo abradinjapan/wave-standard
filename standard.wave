@@ -1,0 +1,454 @@
+[
+    General
+]
+
+general.character.size()(bytes) = {
+    wave.set(wave.integer.1)(bytes)
+}
+
+general.address.size()(bytes) = {
+    wave.set(wave.integer.8)(bytes)
+}
+
+general.u64.size()(bytes) = {
+    wave.set(wave.integer.8)(bytes)
+}
+
+[
+    Buffer
+]
+
+[ copy one buffer to another buffer of the same size ]
+buffer.copy.same_size(old.start old.end new.start new.end)(error) = {
+    [ setup variables ]
+    wave.set(wave.integer.1)(adjust)
+    wave.set(wave.integer.1)(byte_size)
+    wave.set(wave.integer.1)(always)
+    wave.set(wave.integer.0)(error)
+
+    [ calculate sizes ]
+    wave.integer.subtract(old.end old.start)(old.size)
+    wave.integer.add(old.size adjust)(old.size)
+    wave.integer.subtract(new.end new.start)(new.size)
+    wave.integer.add(new.size adjust)(new.size)
+
+    [ check for equivalent sizes ]
+    wave.integer.within_range(old.size new.size old.size)(same_size)
+    wave.boolean.not(same_size)(different_size)
+    wave.jump(different_size @return_error)()
+
+    [ copy old buffer to new buffer ]
+    [ setup currents ]
+    wave.copy(old.start)(old.current)
+    wave.copy(new.start)(new.current)
+
+    [ setup loop start offset ]
+    @copy_loop.start
+
+    [ check if currents are within the buffer range ]
+    wave.integer.within_range(old.start old.current old.end)(in_range)
+    wave.boolean.not(in_range)(out_of_range)
+    wave.jump(out_of_range @return)()
+    wave.integer.within_range(new.start new.current new.end)(in_range)
+    wave.boolean.not(in_range)(out_of_range)
+    wave.jump(out_of_range @return)()
+
+    [ get byte to copy ]
+    wave.address_to_cell(old.current byte_size)(temp error)
+
+    [ jump if error ]
+    wave.jump(error @return_error)()
+
+    [ copy byte ]
+    wave.cell_to_address(temp byte_size new.current)(error)
+
+    [ jump if error ]
+    wave.jump(error @return_error)()
+
+    [ advance currents ]
+    wave.integer.add(old.current byte_size)(old.current)
+    wave.integer.add(new.current byte_size)(new.current)
+
+    [ return to loop start ]
+    wave.jump(always @copy_loop.start)()
+
+    [ setup error return ]
+    @return_error
+
+    [ set error ]
+    wave.set(wave.integer.1)(error)
+
+    [ DEBUG ]
+    wave.print.number(error)()
+
+    [ setup function return ]
+    @return
+}
+
+[
+    Strings
+]
+
+string.print.new_line()() = {
+    wave.set(wave.integer.10)(new_line)
+    wave.print.character(new_line)()
+}
+
+string.print.space()() = {
+    wave.set(wave.integer.32)(space)
+    wave.print.character(space)()
+}
+
+string.print.tab()() = {
+    wave.set(wave.integer.9)(tab)
+    wave.print.character(tab)()
+}
+
+string.print(start end)() = {
+    [ setup variables ]
+    wave.set(wave.integer.1)(character_size)
+    wave.set(wave.integer.1)(always)
+
+    [ setup current ]
+    wave.copy(start)(current)
+
+    [ loop start ]
+    @print_character
+
+    [ check if loop should quit ]
+    wave.integer.within_range(start current end)(continue)
+    wave.boolean.not(continue)(quit)
+    wave.jump(quit @exit)()
+
+    [ get character ]
+    wave.address_to_cell(current character_size)(character error)
+
+    [ next character ]
+    wave.integer.add(current character_size)(current)
+
+    [ print character ]
+    wave.print.character(character)()
+
+    [ jump to loop start ]
+    wave.jump(always @print_character)()
+
+    [ loop end ]
+    @exit
+
+    [ print new line ]
+    string.print.new_line()()
+}
+
+[
+    List
+]
+
+list.offset.buffer_address_start()(value) = {
+    wave.set(wave.integer.0)(value)
+}
+
+list.offset.buffer_address_end()(value) = {
+    wave.set(wave.integer.8)(value)
+}
+
+list.offset.buffer_filled_index()(value) = {
+    wave.set(wave.integer.16)(value)
+}
+
+list.offset.buffer_increase()(value) = {
+    wave.set(wave.integer.24)(value)
+}
+
+list.offset.total_size()(value) = {
+    wave.set(wave.integer.32)(value)
+}
+
+list.size.buffer_address_start()(value) = {
+    general.u64.size()(value)
+}
+
+list.size.buffer_address_end()(value) = {
+    general.u64.size()(value)
+}
+
+list.size.buffer_filled_index()(value) = {
+    general.u64.size()(value)
+}
+
+list.size.buffer_increase()(value) = {
+    general.u64.size()(value)
+}
+
+list.set.buffer_address_start(list.start value)() = {
+    [ setup variables ]
+    list.size.buffer_address_start()(byte_size)
+
+    [ perform write ]
+    wave.cell_to_address(value byte_size list.start)(error)
+}
+
+list.set.buffer_address_end(list.start value)() = {
+    [ setup variables ]
+    list.offset.buffer_address_end()(offset)
+    list.size.buffer_address_end()(byte_size)
+
+    [ calculate address ]
+    wave.integer.add(list.start offset)(write_address)
+
+    [ perform write ]
+    wave.cell_to_address(value byte_size write_address)(error)
+}
+
+list.set.buffer_filled_index(list.start value)() = {
+    [ setup variables ]
+    list.offset.buffer_filled_index()(offset)
+    list.size.buffer_filled_index()(byte_size)
+
+    [ calculate address ]
+    wave.integer.add(list.start offset)(write_address)
+
+    [ perform write ]
+    wave.cell_to_address(value byte_size write_address)(error)
+}
+
+list.set.buffer_increase(list.start value)() = {
+    [ setup variables ]
+    list.offset.buffer_increase()(offset)
+    list.size.buffer_increase()(byte_size)
+
+    [ calculate address ]
+    wave.integer.add(list.start offset)(write_address)
+
+    [ perform write ]
+    wave.cell_to_address(value byte_size write_address)(error)
+}
+
+list.get.buffer_address_start(list.start)(value) = {
+    [ setup variables ]
+    list.size.buffer_address_start()(byte_size)
+
+    [ perform read ]
+    wave.address_to_cell(list.start byte_size)(value error)
+}
+
+list.get.buffer_address_end(list.start)(value) = {
+    [ setup variables ]
+    list.size.buffer_address_end()(byte_size)
+    list.offset.buffer_address_end()(offset)
+
+    [ calculate address ]
+    wave.integer.add(list.start offset)(read_address)
+
+    [ perform read ]
+    wave.address_to_cell(read_address byte_size)(value error)
+}
+
+list.get.buffer_filled_index(list.start)(value) = {
+    [ setup variables ]
+    list.size.buffer_filled_index()(byte_size)
+    list.offset.buffer_filled_index()(offset)
+
+    [ calculate address ]
+    wave.integer.add(list.start offset)(read_address)
+
+    [ perform read ]
+    wave.address_to_cell(read_address byte_size)(value error)
+}
+
+list.get.buffer_increase(list.start)(value) = {
+    [ setup variables ]
+    list.size.buffer_increase()(byte_size)
+    list.offset.buffer_increase()(offset)
+
+    [ calculate address ]
+    wave.integer.add(list.start offset)(read_address)
+
+    [ perform read ]
+    wave.address_to_cell(read_address byte_size)(value error)
+}
+
+[ print list data DEBUG ]
+list.debug.print(list.start list.end)() = {
+    [ print address start ]
+    string.print.tab()()
+    list.get.buffer_address_start(list.start)(value)
+    wave.print.number(value)()
+    string.print.new_line()()
+
+    [ print address end ]
+    string.print.tab()()
+    list.get.buffer_address_end(list.start)(value)
+    wave.print.number(value)()
+    string.print.new_line()()
+
+    [ print index filled ]
+    string.print.tab()()
+    list.get.buffer_filled_index(list.start)(value)
+    wave.print.number(value)()
+    string.print.new_line()()
+
+    [ print address increase ]
+    string.print.tab()()
+    list.get.buffer_increase(list.start)(value)
+    wave.print.number(value)()
+    string.print.new_line()()
+}
+
+[ create a list ]
+list.create(increase)(list.start list.end error) = {
+    [ A list is an object that dynamically resizes based on the amount of data present. ]
+    [ There are 4 fields: ]
+    [ 1: buffer address start, the start of the buffer ]
+    [ 2: buffer address end, the end of the buffer ]
+    [ 3: buffer filled index, the index at the top of the amount of data in the buffer ]
+    [ 4: buffer increase, the amount of bytes that the list should increase by when out of room ]
+
+    [ setup variables ]
+    list.offset.total_size()(list.object.size)
+    wave.set(wave.integer.0)(filled)
+
+    [ allocate object ]
+    wave.request_memory(list.object.size)(list.start list.end error)
+
+    [ quit if error ]
+    wave.jump(error @return)()
+
+    [ allocate data buffer ]
+    wave.request_memory(increase)(data.start data.end error)
+
+    [ quit if error ]
+    wave.jump(error @return)()
+
+    [ setup blank list ]
+    list.set.buffer_address_start(list.start data.start)()
+    list.set.buffer_address_end(list.start data.end)()
+    list.set.buffer_filled_index(list.start filled)()
+    list.set.buffer_increase(list.start increase)()
+
+    [ exit function ]
+    @return
+}
+
+[ destroy a list ]
+list.destroy(list.start list.end)() = {
+    [ get the data buffer ]
+    list.get.buffer_address_start(list.start)(data.start)
+    list.get.buffer_address_end(list.start)(data.end)
+
+    [ free the data buffer ]
+    wave.return_memory(data.start data.end)()
+
+    [ free the list buffer ]
+    wave.return_memory(list.start list.end)()
+}
+
+list.expand(list.start)(error) = {
+    [ write pointer size adjustment ]
+    wave.set(wave.integer.1)(adjust)
+    wave.set(wave.integer.1)(always)
+
+    [ get old list addresses ]
+    list.get.buffer_address_start(list.start)(old.start)
+    list.get.buffer_address_end(list.start)(old.end)
+
+    [ get increase ]
+    list.get.buffer_increase(list.start)(increase)
+
+    [ calculate new list size ]
+    wave.integer.subtract(old.end old.start)(old.size)
+    wave.integer.add(old.size adjust)(old.size)
+    wave.integer.add(old.size increase)(new.size)
+
+    [ allocate new list ]
+    wave.request_memory(new.size)(new.start new.end error)
+
+    [ quit if error ]
+    wave.jump(error @exit_error)()
+
+    [ setup new list copy address ]
+    wave.integer.add(new.start old.size)(new.old.end)
+    wave.integer.subtract(new.old.end adjust)(new.old.end)
+
+    [ copy old list to new list ]
+    buffer.copy.same_size(old.start old.end new.start new.old.end)(error)
+
+    [ exit if error ]
+    wave.jump(error @exit_error)()
+
+    [ destroy the old list ]
+    wave.return_memory(old.start old.end)()
+
+    [ replace old list addresses with new list addresses ]
+    list.set.buffer_address_start(list.start new.start)()
+    list.set.buffer_address_end(list.start new.end)()
+
+    [ jump to return ]
+    wave.jump(always @exit)()
+
+    [ error exit offset ]
+    @exit_error
+
+    [ destroy new allocation if not copied ]
+    wave.return_memory(new.start new.end)()
+
+    [ exit ]
+    @exit
+}
+
+[ add data to the list ]
+list.append(list.start data byte_size)(error) = {
+    [ setup variables ]
+    wave.set(wave.integer.1)(always)
+    wave.set(wave.integer.1)(adjust)
+
+    [ make sure enough room is present to write data ]
+    [ setup allocation loop offset ]
+    @expand_loop.start
+
+    [ update list variables ]
+    list.get.buffer_address_start(list.start)(buffer_address_start)
+    list.get.buffer_address_end(list.start)(buffer_address_end)
+    list.get.buffer_filled_index(list.start)(buffer_filled_index)
+
+    [ setup the list filled addresses ]
+    wave.integer.add(buffer_address_start buffer_filled_index)(buffer_write_address)
+    wave.integer.subtract(buffer_write_address adjust)(buffer_filled_address)
+    wave.integer.add(buffer_filled_address byte_size)(new.buffer_filled_address)
+
+    [ if the new buffer filled address is greater than the list buffer end, jump to the write ]
+    wave.integer.within_range(buffer_address_start new.buffer_filled_address buffer_address_end)(in_buffer_range)
+    wave.jump(in_buffer_range @write_data)()
+
+    [ if the new address is out of range, expand it ]
+    list.expand(list.start)(error)
+
+    [ DEBUG ]
+    string.print.tab()()
+    wave.print.number(buffer_address_start)()
+    string.print.space()()
+    wave.print.number(buffer_address_end)()
+    string.print.space()()
+    wave.integer.subtract(buffer_address_end buffer_address_start)(bytes)
+    wave.integer.add(bytes adjust)(bytes)
+    wave.print.number(bytes)()
+    string.print.new_line()()
+
+    [ leave function if error ]
+    wave.jump(error @return)()
+
+    [ always go back to expand loop start ]
+    wave.jump(always @expand_loop.start)()
+
+    [ setup writing data offset ]
+    @write_data
+
+    [ write data ]
+    wave.cell_to_address(data byte_size buffer_write_address)(error)
+
+    [ update list data ]
+    wave.integer.add(buffer_filled_index byte_size)(new.buffer_filled_index)
+    list.set.buffer_filled_index(list.start new.buffer_filled_index)()
+
+    [ return ]
+    @return
+}
