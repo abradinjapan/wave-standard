@@ -6,9 +6,9 @@ A set of tools for writing wave code.
 
 ## General
 
-> general.character.size()(bytes)
-> general.address.size()(bytes)
-> general.u64.size()(bytes)
+- general.character.size()(bytes)
+- general.address.size()(bytes)
+- general.u64.size()(bytes)
 
 ## Buffer
 
