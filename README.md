@@ -8,6 +8,13 @@ A set of tools for writing wave code.
 
 - general.character.size()(bytes)
 - general.address.size()(bytes)
+- general.u8.size()(bytes)
+- general.u16.size()(bytes)
+- general.u24.size()(bytes)
+- general.u32.size()(bytes)
+- general.u40.size()(bytes)
+- general.u48.size()(bytes)
+- general.u56.size()(bytes)
 - general.u64.size()(bytes)
 
 ## Buffer

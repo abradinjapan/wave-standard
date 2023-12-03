@@ -15,6 +15,34 @@ general.address.size()(bytes) = {
     wave.set(wave.integer.8)(bytes)
 }
 
+general.u8.size()(bytes) = {
+    wave.set(wave.integer.1)(bytes)
+}
+
+general.u16.size()(bytes) = {
+    wave.set(wave.integer.2)(bytes)
+}
+
+general.u24.size()(bytes) = {
+    wave.set(wave.integer.3)(bytes)
+}
+
+general.u32.size()(bytes) = {
+    wave.set(wave.integer.4)(bytes)
+}
+
+general.u40.size()(bytes) = {
+    wave.set(wave.integer.5)(bytes)
+}
+
+general.u48.size()(bytes) = {
+    wave.set(wave.integer.6)(bytes)
+}
+
+general.u56.size()(bytes) = {
+    wave.set(wave.integer.7)(bytes)
+}
+
 general.u64.size()(bytes) = {
     wave.set(wave.integer.8)(bytes)
 }
