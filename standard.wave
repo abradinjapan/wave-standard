@@ -600,6 +600,16 @@ code.write_instruction.write_cell(input.current do_write value destination)(outp
     code.write_instruction(input.current do_write opcode value unused unused unused unused destination unused unused unused)(output.current error)
 }
 
+[ write the copy_cell instruction ]
+code.write_instruction.copy_cell(input.current do_write source destination)(output.current error) = {
+    [ setup variables ]
+    wave.set(wave.instruction.opcode.copy_cell)(opcode)
+    wave.set(wave.integer.0)(unused)
+
+    [ write instruction ]
+    code.write_instruction(input.current do_write opcode unused source unused unused unused destination unused unused unused)(output.current error)
+}
+
 [ write the print_cell_as_number instruction ]
 code.write_instruction.print_cell_as_number(input.current do_write source)(output.current error) = {
     [ setup variables ]
