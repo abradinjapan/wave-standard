@@ -64,6 +64,7 @@ A set of tools for writing wave code.
 
 - code.write_instruction.quit(input.current do_write)(output.current error)
 - code.write_instruction.write_cell(input.current do_write value destination)(output.current error)
+- code.write_instruction.copy_cell(input.current do_write source destination)(output.current error)
 - code.write_instruction.print_cell_as_number(input.current do_write source)(output.current error)
 - code.write_instruction.print_cell_as_character(input.current do_write source)(output.current error)
 - code.write_instruction.get_console_input(input.current do_write buffer.start buffer.end)(output.current error)
