@@ -518,13 +518,13 @@ code.write_instruction.setup_pass.build(program_size)(program.start program.end 
 }
 
 [ write any instruction ]
-code.write_instruction(input.current do_write type write_register_value input_0 input_1 input_2 input_3 output_0 output_1 output_2 jump_instruction_ID)(output.current error) = {
+code.write_instruction(input.current do_write opcode write_register_value input_0 input_1 input_2 input_3 output_0 output_1 output_2 jump_instruction_ID)(output.current error) = {
     [ jump to end if not doing write ]
     wave.boolean.not(do_write)(skip_write)
     wave.jump(skip_write @advance_current)()
 
     [ setup offsets ]
-    wave.set(wave.instruction.type.offset)(type.offset)
+    wave.set(wave.instruction.opcode.offset)(opcode.offset)
     wave.set(wave.instruction.write_register_value.offset)(write_register_value.offset)
     wave.set(wave.instruction.input_0.offset)(input_0.offset)
     wave.set(wave.instruction.input_1.offset)(input_1.offset)
@@ -536,7 +536,7 @@ code.write_instruction(input.current do_write type write_register_value input_0 
     wave.set(wave.instruction.jump_instruction_ID.offset)(jump_instruction_ID.offset)
 
     [ setup byte sizes ]
-    wave.set(wave.instruction.type.size)(type.size)
+    wave.set(wave.instruction.opcode.size)(opcode.size)
     wave.set(wave.instruction.write_register_value.size)(write_register_value.size)
     wave.set(wave.instruction.input_0.size)(input_0.size)
     wave.set(wave.instruction.input_1.size)(input_1.size)
@@ -548,7 +548,7 @@ code.write_instruction(input.current do_write type write_register_value input_0 
     wave.set(wave.instruction.jump_instruction_ID.size)(jump_instruction_ID.size)
 
     [ calculate write addresses ]
-    wave.integer.add(input.current type.offset)(type.write_address)
+    wave.integer.add(input.current opcode.offset)(opcode.write_address)
     wave.integer.add(input.current write_register_value.offset)(write_register_value.write_address)
     wave.integer.add(input.current input_0.offset)(input_0.write_address)
     wave.integer.add(input.current input_1.offset)(input_1.write_address)
@@ -560,7 +560,7 @@ code.write_instruction(input.current do_write type write_register_value input_0 
     wave.integer.add(input.current jump_instruction_ID.offset)(jump_instruction_ID.write_address)
 
     [ perform writes ]
-    wave.cell_to_address(type type.size type.write_address)(error)
+    wave.cell_to_address(opcode opcode.size opcode.write_address)(error)
     wave.cell_to_address(write_register_value write_register_value.size write_register_value.write_address)(error)
     wave.cell_to_address(input_0 input_0.size input_0.write_address)(error)
     wave.cell_to_address(input_1 input_1.size input_1.write_address)(error)
