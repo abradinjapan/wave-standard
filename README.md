@@ -54,7 +54,7 @@ A set of tools for writing wave code.
 - list.create(increase)(list.start list.end error)
 - list.destroy(list.start list.end)
 - list.expand(list.start)(error)
-- list.append(list.start data byte_size)(error)
+- list.append.cell(list.start data byte_size)(error)
 
 ## Code
 

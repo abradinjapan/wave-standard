@@ -318,7 +318,7 @@ list.destroy(list.start list.end)() = {
     wave.return_memory(list.start list.end)()
 }
 
-list.expand(list.start)(error) = {
+list.expand(list.start length)(error) = {
     [ write pointer size adjustment ]
     wave.set(wave.integer.1)(adjust)
     wave.set(wave.integer.1)(always)
@@ -327,13 +327,10 @@ list.expand(list.start)(error) = {
     list.get.buffer_address_start(list.start)(old.start)
     list.get.buffer_address_end(list.start)(old.end)
 
-    [ get increase ]
-    list.get.buffer_increase(list.start)(increase)
-
     [ calculate new list size ]
     wave.integer.subtract(old.end old.start)(old.size)
     wave.integer.add(old.size adjust)(old.size)
-    wave.integer.add(old.size increase)(new.size)
+    wave.integer.add(old.size length)(new.size)
 
     [ allocate new list ]
     wave.request_memory(new.size)(new.start new.end error)
@@ -346,7 +343,7 @@ list.expand(list.start)(error) = {
     wave.integer.subtract(new.old.end adjust)(new.old.end)
 
     [ copy old list to new list ]
-    buffer.copy.same_size(old.start old.end new.start new.old.end)(error)
+    wave.copy.buffer(old.start old.end new.start new.old.end)(error error)
 
     [ exit if error ]
     wave.jump(error @exit_error)()
@@ -385,6 +382,7 @@ list.append(list.start data byte_size)(error) = {
     list.get.buffer_address_start(list.start)(buffer_address_start)
     list.get.buffer_address_end(list.start)(buffer_address_end)
     list.get.buffer_filled_index(list.start)(buffer_filled_index)
+    list.get.buffer_increase(list.start)(buffer_increase)
 
     [ setup the list filled addresses ]
     wave.integer.add(buffer_address_start buffer_filled_index)(buffer_write_address)
@@ -396,18 +394,7 @@ list.append(list.start data byte_size)(error) = {
     wave.jump(in_buffer_range @write_data)()
 
     [ if the new address is out of range, expand it ]
-    list.expand(list.start)(error)
-
-    [ DEBUG ]
-    string.print.tab()()
-    wave.print.number(buffer_address_start)()
-    string.print.space()()
-    wave.print.number(buffer_address_end)()
-    string.print.space()()
-    wave.integer.subtract(buffer_address_end buffer_address_start)(bytes)
-    wave.integer.add(bytes adjust)(bytes)
-    wave.print.number(bytes)()
-    string.print.new_line()()
+    list.expand(list.start buffer_increase)(error)
 
     [ leave function if error ]
     wave.jump(error @return)()
@@ -428,6 +415,11 @@ list.append(list.start data byte_size)(error) = {
     [ return ]
     @return
 }
+
+[ insert a buffer to a list ]
+[ list.insert(list.start data.start data.end)(error) = {
+    [ calculate the new buffer size ]
+} ]
 
 [
     Code
@@ -543,10 +535,10 @@ code.write_instruction.copy_cell(input.current do_write source destination)(outp
     code.write_instruction(input.current do_write opcode unused source unused unused unused destination unused unused unused)(output.current error)
 }
 
-[ write the copy_string instruction ]
-code.write_instruction.copy_string(input.current do_write string_ID destination_start destination_end error_code)(output.current error) = {
+[ write the load_string instruction ]
+code.write_instruction.load_string(input.current do_write string_ID destination_start destination_end error_code)(output.current error) = {
     [ setup variables ]
-    wave.set(wave.instruction.opcode.copy_string)(opcode)
+    wave.set(wave.instruction.opcode.load_string)(opcode)
     wave.set(wave.integer.0)(unused)
 
     [ write instruction ]
