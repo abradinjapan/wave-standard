@@ -19,7 +19,7 @@ A set of tools for writing wave code.
 
 ## Buffer
 
-- buffer.copy.same_size(old.start old.end new.start new.end)(error)
+- buffer.calculate.size(start end)(length)
 
 ## Strings
 
