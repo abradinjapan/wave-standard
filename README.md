@@ -20,6 +20,9 @@ A set of tools for writing wave code.
 ## Buffer
 
 - buffer.calculate.size(start end)(length)
+- buffer.calculate.end_address_from_length(start length)(address)
+- buffer.calculate.size_difference(a.start a.end b.start b.end)(size_difference)
+- buffer.insert.buffer(a.start a.end b.start b.end insertion_index)(c.start c.end error)
 
 ## Strings
 
@@ -52,9 +55,11 @@ A set of tools for writing wave code.
 - list.debug.print(list.start list.end)()
 
 - list.create(increase)(list.start list.end error)
-- list.destroy(list.start list.end)
+- list.destroy(list.start list.end)()
 - list.expand(list.start)(error)
-- list.append.cell(list.start data byte_size)(error)
+- list.append(list.start data byte_size)(error)
+
+- list.calculate.filled_addresses(list.start)(filled_data.start filled_data.end)
 
 ## Code
 

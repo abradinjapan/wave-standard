@@ -61,6 +61,110 @@ buffer.calculate.size(start end)(length) = {
     wave.integer.add(length adjust)(length)
 }
 
+[ calculate the buffer end address from an address and a length ]
+buffer.calculate.end_address_from_length(start length)(address) = {
+    [ add pointer and length ]
+    wave.integer.add(start length)(address)
+}
+
+[ calculate the difference in size ]
+buffer.calculate.size_difference(a.start a.end b.start b.end)(size_difference) = {
+    [ calculate sizes ]
+    wave.integer.subtract(a.end a.start)(a.length)
+    wave.integer.subtract(b.end b.start)(b.length)
+
+    [ calculate size difference ]
+    wave.integer.subtract(b.length a.length)(size_difference)
+}
+
+[ insert a buffer to another buffer ]
+buffer.insert.buffer(a.start a.end b.start b.end insertion_index)(c.start c.end error) = {
+    [ calculate buffer sizes ]
+    buffer.calculate.size(a.start a.end)(a.length)
+    buffer.calculate.size(b.start b.end)(b.length)
+    wave.integer.add(a.length b.length)(c.length)
+
+    [ allocate new buffer ]
+    wave.request_memory(c.length)(c.start c.end error)
+
+    [ check allocation error ]
+    wave.jump(error @exit)()
+
+    [ check valid insertion index ]
+    wave.set(wave.integer.0)(min)
+    wave.integer.within_range(min insertion_index a.length)(in_range)
+    wave.boolean.not(in_range)(error)
+    wave.jump(error @exit)()
+
+    [ check if the insertion address is zero and determine if the splice is two or three copies ]
+    wave.set(wave.integer.0)(0)
+    wave.integer.within_range(0 insertion_index 0)(is_two_splice)
+    wave.jump(is_two_splice @two_splice.start)()
+
+    [ three splice copy ]
+    @three_splice.start
+
+    [ adjust the insertion index by one ]
+    wave.set(wave.integer.1)(adjust)
+    wave.integer.subtract(insertion_index adjust)(insertion_index)
+
+    [ calculate a left half addresses ]
+    wave.copy(a.start)(a.splice.left.start)
+    wave.integer.add(a.splice.left.start insertion_index)(a.splice.left.end)
+
+    [ calculate a right half addresses ]
+    wave.set(wave.integer.1)(adjust)
+    wave.integer.add(a.splice.left.end adjust)(a.splice.right.start)
+    wave.copy(a.end)(a.splice.right.end)
+
+    [ calculate left splice addresses ]
+    wave.copy(c.start)(left.splice.start)
+    wave.integer.add(left.splice.start insertion_index)(left.splice.end)
+
+    [ calculate middle splice addresses ]
+    wave.set(wave.integer.1)(adjust)
+    wave.integer.add(left.splice.end adjust)(middle.splice.start)
+    wave.integer.add(middle.splice.start b.length)(middle.splice.end)
+    wave.integer.subtract(middle.splice.end adjust)(middle.splice.end)
+
+    [ calculate right splice addresses ]
+    wave.set(wave.integer.1)(adjust)
+    wave.integer.add(middle.splice.end adjust)(right.splice.start)
+    wave.integer.add(c.start c.length)(right.splice.end)
+    wave.integer.subtract(right.splice.end adjust)(right.splice.end)
+
+    [ insert buffers into new buffer ]
+    wave.copy.buffer(a.splice.left.start a.splice.left.end left.splice.start left.splice.end)(error.length error.address)
+    wave.copy.buffer(b.start b.end middle.splice.start middle.splice.end)(error.length error.address)
+    wave.copy.buffer(a.splice.right.start a.splice.right.end right.splice.start right.splice.end)(error.length error.address)
+
+    [ return ]
+    wave.set(wave.boolean.true)(always)
+    wave.jump(always @exit)()
+
+    [ two splice copy ]
+    @two_splice.start
+
+    [ calculate c left half addresses ]
+    wave.set(wave.integer.1)(adjust)
+    wave.copy(c.start)(c.left.start)
+    wave.integer.add(c.left.start b.length)(c.left.end)
+    wave.integer.subtract(c.left.end adjust)(c.left.end)
+
+    [ calculate c right half addresses ]
+    wave.set(wave.integer.1)(adjust)
+    wave.integer.add(c.left.end adjust)(c.right.start)
+    wave.integer.add(c.right.start a.length)(c.right.end)
+    wave.integer.subtract(c.right.end adjust)(c.right.end)
+
+    [ copy buffers ]
+    wave.copy.buffer(b.start b.end c.left.start c.left.end)(error.length error.address)
+    wave.copy.buffer(a.start a.end c.right.start c.right.end)(error.length error.address)
+
+    [ return ]
+    @exit
+}
+
 [
     Strings
 ]
@@ -416,10 +520,18 @@ list.append(list.start data byte_size)(error) = {
     @return
 }
 
-[ insert a buffer to a list ]
-[ list.insert(list.start data.start data.end)(error) = {
-    [ calculate the new buffer size ]
-} ]
+[ create a buffer that spans the filled index of the buffer (not the actual end) ]
+list.calculate.filled_addresses(list.start)(filled_data.start filled_data.end) = {
+    [ get list data ]
+    list.get.buffer_address_start(list.start)(buffer.start)
+    list.get.buffer_filled_index(list.start)(filled_index)
+
+    [ set starting address ]
+    wave.copy(buffer.start)(filled_data.start)
+
+    [ calculate and set end address ]
+    buffer.calculate.end_address_from_length(buffer.start filled_index)(filled_data.end)
+}
 
 [
     Code
