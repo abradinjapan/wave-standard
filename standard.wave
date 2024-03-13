@@ -84,16 +84,16 @@ buffer.insert.buffer(a.start a.end b.start b.end insertion_index)(c.start c.end 
     buffer.calculate.size(b.start b.end)(b.length)
     wave.integer.add(a.length b.length)(c.length)
 
-    [ allocate new buffer ]
-    wave.request_memory(c.length)(c.start c.end error)
-
-    [ check allocation error ]
-    wave.jump(error @exit)()
-
     [ check valid insertion index ]
     wave.set(wave.integer.0)(min)
     wave.integer.within_range(min insertion_index a.length)(in_range)
     wave.boolean.not(in_range)(error)
+    wave.jump(error @exit)()
+
+    [ allocate new buffer ]
+    wave.request_memory(c.length)(c.start c.end error)
+
+    [ check allocation error ]
     wave.jump(error @exit)()
 
     [ check if the insertion address is zero and determine if the splice is two or three copies ]
